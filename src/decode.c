@@ -89,6 +89,9 @@ static Dwg_Resbuf *dwg_decode_xdata (Bit_Chain *restrict dat,
 
 static int dwg_decode_ole2 (Dwg_Entity_OLE2FRAME *restrict _obj);
 
+static int dwg_decode_common (Bit_Chain *dat, Bit_Chain *hdl_dat,
+                              Bit_Chain *str_dat, Dwg_Object *restrict obj);
+
 static int dwg_decode_object (Bit_Chain *dat, Bit_Chain *hdl_dat,
                               Bit_Chain *str_dat,
                               Dwg_Object_Object *restrict obj);
@@ -291,7 +294,7 @@ decode_R13_R2000 (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
     Dwg_Header *_obj = &dwg->header;
     Bit_Chain *hdl_dat = dat;
     dat->byte = 0x06;
-    // clang-format off
+// clang-format off
     #include "header.spec"
     // clang-format on
   }
@@ -380,7 +383,7 @@ decode_R13_R2000 (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
           BITCODE_BL old_size = dat->size;
           BITCODE_BL vcount;
           dat->size = end_address;
-          // clang-format off
+// clang-format off
           #include "auxheader.spec"
           // clang-format on
           dat->size = old_size;
@@ -2575,7 +2578,7 @@ summaryinfo_private (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
   Dwg_Object *obj = NULL;
   int error = 0;
 
-  // clang-format off
+// clang-format off
   #include "summaryinfo.spec"
   // clang-format on
 
@@ -2729,7 +2732,7 @@ filedeplist_private (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
   int error = 0;
   BITCODE_BL vcount;
 
-  // clang-format off
+// clang-format off
   #include "filedeplist.spec"
   // clang-format on
 
@@ -2778,7 +2781,7 @@ security_private (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
   int error = 0;
   memset (_obj, 0, sizeof (Dwg_Security));
 
-  // clang-format off
+// clang-format off
   #include "security.spec"
   // clang-format on
 
@@ -2951,7 +2954,7 @@ revhistory_private (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
   Dwg_Object *obj = NULL;
   int error = 0;
 
-  // clang-format off
+// clang-format off
   #include "revhistory.spec"
   // clang-format on
 
@@ -3017,7 +3020,7 @@ read_2004_section_objfreespace (Bit_Chain *restrict dat,
   dat = &sec_dat; // restrict in size
   bit_chain_set_version (&old_dat, dat);
 
-  // clang-format off
+// clang-format off
   #include "objfreespace.spec"
   // clang-format on
 
@@ -3037,7 +3040,7 @@ template_private (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
   Dwg_Object *obj = NULL;
   int error = 0;
 
-  // clang-format off
+// clang-format off
   #include "template.spec"
   // clang-format on
 
@@ -3094,7 +3097,7 @@ acds_private (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
   BITCODE_BL rcount3 = 0, rcount4, vcount;
   int error = 0;
 
-  // clang-format off
+// clang-format off
   #include "acds.spec"
   // clang-format on
 
@@ -3237,7 +3240,7 @@ decode_R2004_header (Bit_Chain *restrict file_dat, Dwg_Data *restrict dwg)
     dat = &decrypted_header_dat;
     dat->bit = dat->byte = 0;
     LOG_TRACE ("\n#### r2004 File Header ####\n");
-    // clang-format off
+// clang-format off
     #include "r2004_file_header.spec"
     // clang-format on
 
@@ -3348,7 +3351,6 @@ decode_R2004 (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
     Dwg_Object *obj = NULL;
     Bit_Chain *hdl_dat = dat;
     int i;
-
     dat->byte = 0x06;
     if (dat->from_version >= R_2022)
       dat->byte = 0x07;
@@ -3458,9 +3460,8 @@ decode_R2007 (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
     int i;
     Dwg_Header *_obj = &dwg->header;
     Dwg_Object *obj = NULL;
-
     dat->byte = 0x06;
-    // clang-format off
+// clang-format off
     #include "header.spec"
     // clang-format on
   }
@@ -4067,14 +4068,12 @@ int
 obj_handle_stream (Bit_Chain *restrict dat, Dwg_Object *restrict obj,
                    Bit_Chain *restrict hdl_dat)
 {
-  long unsigned int bit8 = obj->bitsize / 8;
   assert (dat != hdl_dat);
   // The handle stream offset, i.e. end of the object, right after
   // the has_strings bit.
-  obj->hdlpos = obj->bitsize; // relative to dat
-  // restrict it to 0-end
-  hdl_dat->byte = bit8;
-  hdl_dat->bit = obj->bitsize % 8;
+  // Restrict it to 0 - end
+  hdl_dat->byte = obj->hdlpos / 8;
+  hdl_dat->bit = obj->hdlpos % 8;
   // bit_reset_chain (hdl_dat); //but keep the same start
   if (!obj->handlestream_size) // with strings we already did calc. it
     {
@@ -4101,22 +4100,19 @@ obj_handle_stream (Bit_Chain *restrict dat, Dwg_Object *restrict obj,
    For proxy graphics check page 270, par 29 (Proxy Entity Graphics)
 
    PRE(R_13b1) goes into decode_entity_preR13 instead.
+   There is no COMMON_ENTITY_DATA for objects.
  */
 static int
-dwg_decode_entity (Bit_Chain *dat, Bit_Chain *hdl_dat, Bit_Chain *str_dat,
-                   Dwg_Object_Entity *restrict ent)
+dwg_decode_common (Bit_Chain *dat, Bit_Chain *hdl_dat, Bit_Chain *str_dat,
+                   Dwg_Object *restrict obj)
 {
   unsigned int i;
   int error = 0;
-  Dwg_Data *dwg = ent->dwg;
-  Dwg_Object *obj = &dwg->object[ent->objid];
-  Dwg_Object_Entity *_obj = ent;
-  Dwg_Object_Entity *_ent = ent;
+  Dwg_Data *restrict dwg = obj->parent;
   Dwg_Class *klass = NULL;
   unsigned long objectpos = bit_position (dat);
   int has_wrong_bitsize = 0;
 
-  // obj->dat_address = dat->byte; // the data stream offset
   obj->bitsize_pos = objectpos; // absolute. needed for encode
   VERSIONS (R_2000, R_2007)
   {
@@ -4130,6 +4126,7 @@ dwg_decode_entity (Bit_Chain *dat, Bit_Chain *hdl_dat, Bit_Chain *str_dat,
         obj->bitsize = obj->size * 8;
         has_wrong_bitsize = 1;
         error |= DWG_ERR_VALUEOUTOFBOUNDS;
+        LOG_HANDLE (" (fixed)");
       }
     else
       error |= obj_handle_stream (dat, obj, hdl_dat);
@@ -4153,25 +4150,62 @@ dwg_decode_entity (Bit_Chain *dat, Bit_Chain *hdl_dat, Bit_Chain *str_dat,
       }
   }
 
-  error |= bit_read_H (dat, &(obj->handle));
-  if (error & DWG_ERR_INVALIDHANDLE || !obj->handle.value || !obj->handle.size)
+  error |= bit_read_H (dat, &obj->handle);
+  if (error & DWG_ERR_INVALIDHANDLE || !obj->handle.value || !obj->handle.size
+      || obj->handle.code)
     {
       LOG_ERROR ("Invalid object handle " FORMAT_H " at pos @%lu.%u",
                  ARGS_H (obj->handle), dat->byte, dat->bit);
       // TODO reconstruct the handle and search in the bitsoup?
       if (has_wrong_bitsize)
         obj->bitsize = 0;
-      // obj->handle.value = 0;
-      // obj->handle.size = 0;
-      // obj->handle.code = 0;
-      ent->num_eed = 0;
-      ent->preview_exists = 0;
-      return error | DWG_ERR_INVALIDHANDLE;
+      return error;
     }
   LOG_TRACE ("handle: " FORMAT_H " [H 5]", ARGS_H (obj->handle))
   LOG_INSANE (" @%lu.%u", dat->byte, dat->bit)
   LOG_TRACE ("\n")
+  return error;
+}
 
+/* The first common part of every entity.
+
+   The last common part is common_entity_handle_data.spec
+   called by COMMON_ENTITY_HANDLE_DATA in dwg.spec
+
+   For EED check page 269, par 28 (Extended Object Data)
+ */
+static int
+dwg_decode_entity (Bit_Chain *dat, Bit_Chain *hdl_dat, Bit_Chain *str_dat,
+                   Dwg_Object_Entity *restrict ent)
+{
+  unsigned int i;
+  int error = 0;
+  Dwg_Data *dwg = ent->dwg;
+  Dwg_Object *obj = &dwg->object[ent->objid];
+  Dwg_Object_Entity *_obj = ent;
+  unsigned long objectpos = bit_position (dat);
+
+  obj->bitsize_pos = objectpos; // needed for encode
+
+  PRE (R_13) // see decode_entity_preR13 instead
+  {
+    if (FIELD_VALUE (flag_r11) & 4 && FIELD_VALUE (kind_r11) > 2
+        && FIELD_VALUE (kind_r11) != 22)
+      FIELD_RD (elevation_r11, 30);
+    if (FIELD_VALUE (flag_r11) & 8)
+      FIELD_RD (thickness_r11, 39);
+    if (FIELD_VALUE (flag_r11) & 0x20)
+      {
+        Dwg_Object_Ref *hdl
+            = dwg_decode_handleref_with_code (dat, obj, dwg, 0);
+        if (hdl)
+          obj->handle = hdl->handleref;
+      }
+    if (FIELD_VALUE (extra_r11) & 4)
+      FIELD_RS (paper_r11, 0);
+  }
+
+  error = dwg_decode_common (dat, hdl_dat, str_dat, obj);
   if (has_wrong_bitsize)
     LOG_WARN ("Skip eed")
   else
@@ -4194,93 +4228,25 @@ dwg_decode_entity (Bit_Chain *dat, Bit_Chain *hdl_dat, Bit_Chain *str_dat,
   return error;
 }
 
-/* The first common part of every object.
-
-   There is no COMMON_ENTITY_DATA for objects.
-   Check page 269, par 28 (Extended Object Data)
- */
 static int
 dwg_decode_object (Bit_Chain *dat, Bit_Chain *hdl_dat, Bit_Chain *str_dat,
                    Dwg_Object_Object *restrict _obj)
 {
-  unsigned int i;
-  int error = 0;
-  Dwg_Data *dwg = _obj->dwg;
-  Dwg_Object *obj = &dwg->object[_obj->objid];
+  Dwg_Data *restrict dwg = _obj->dwg;
+  Dwg_Object *restrict obj = &dwg->object[_obj->objid];
   unsigned long objectpos = bit_position (dat);
   int has_wrong_bitsize = 0; // first possibly fatal problem
-  BITCODE_BL vcount;
+  int error;
 
-  // obj->dat_address = dat->byte; // the data stream offset
-  obj->bitsize_pos = objectpos; // absolute. needed for encode
-  VERSIONS (R_2000, R_2007)
-  {
-    obj->bitsize = bit_read_RL (dat);
-    LOG_TRACE ("bitsize: " FORMAT_RL " [RL] @%lu.%u\n", obj->bitsize,
-               dat->byte - 2, dat->bit)
-    if (obj->bitsize > obj->size * 8)
-      {
-        LOG_ERROR ("Invalid bitsize " FORMAT_RL " > " FORMAT_RL, obj->bitsize,
-                   obj->size * 8);
-        obj->bitsize = obj->size * 8;
-        has_wrong_bitsize = 1;
-        error |= DWG_ERR_VALUEOUTOFBOUNDS;
-      }
-    else
-      error |= obj_handle_stream (dat, obj, hdl_dat);
-  }
-  SINCE (R_2007)
-  {
-    SINCE (R_2010)
-      LOG_HANDLE (" bitsize: " FORMAT_RL ",", obj->bitsize);
-    if (obj->bitsize > obj->size * 8)
-      {
-        obj->bitsize = obj->size * 8;
-        has_wrong_bitsize = 1;
-        error |= DWG_ERR_VALUEOUTOFBOUNDS;
-        LOG_HANDLE (" (fixed)");
-      }
-    // restrict the hdl_dat stream. already done for r2007
-    SINCE (R_2010)
-      error |= obj_handle_stream (dat, obj, hdl_dat);
-    // and set the string stream (restricted to size)
-    if (obj->type >= 500 || obj_has_strings (obj->type))
-      error |= obj_string_stream (dat, obj, str_dat);
-    else
-      {
-        str_dat->chain += str_dat->byte;
-        str_dat->byte = 0;
-        str_dat->bit = 0;
-        bit_advance_position (str_dat, obj->bitsize - 1 - 8);
-        str_dat->size = 0;
-      }
-  }
-  SINCE (R_13b1)
-  {
-    error |= bit_read_H (dat, &obj->handle);
-    if (error & DWG_ERR_INVALIDHANDLE || !obj->handle.value
-        || !obj->handle.size || obj->handle.code)
-      {
-        LOG_ERROR ("Invalid object handle " FORMAT_H " at pos @%lu.%u",
-                   ARGS_H (obj->handle), dat->byte, dat->bit);
-        // TODO reconstruct the handle and search in the bitsoup?
-        if (has_wrong_bitsize)
-          obj->bitsize = 0;
-        obj->tio.object->num_eed = 0;
-        return error | DWG_ERR_INVALIDHANDLE;
-      }
-    LOG_TRACE ("handle: " FORMAT_H " [H 5]\n", ARGS_H (obj->handle))
-  }
+  obj->bitsize_pos = objectpos; // needed for encode
 
-  SINCE (R_13b1)
-  {
-    if (has_wrong_bitsize)
-      LOG_WARN ("Skip eed")
-      else
-        error |= dwg_decode_eed (dat, _obj);
-    if (error & (DWG_ERR_INVALIDEED | DWG_ERR_VALUEOUTOFBOUNDS))
-      return error;
-  }
+  error = dwg_decode_common (dat, hdl_dat, str_dat, obj);
+  if (has_wrong_bitsize)
+    LOG_WARN ("Skip eed")
+  else
+    error |= dwg_decode_eed (dat, _obj);
+  if (error & (DWG_ERR_INVALIDEED | DWG_ERR_VALUEOUTOFBOUNDS))
+    return error;
 
   VERSIONS (R_13b1, R_14)
   {
@@ -4298,7 +4264,7 @@ dwg_decode_object (Bit_Chain *dat, Bit_Chain *hdl_dat, Bit_Chain *str_dat,
       error |= obj_handle_stream (dat, obj, hdl_dat);
   }
 
-  // clang-format off
+// clang-format off
   #include "common_object_handle_data.spec"
   // clang-format on
 
@@ -4574,7 +4540,7 @@ dwg_decode_header_variables (Bit_Chain *dat, Bit_Chain *hdl_dat,
   Dwg_Object *obj = NULL;
   int error = 0;
 
-  // clang-format off
+// clang-format off
   #include "header_variables.spec"
   // clang-format on
 
@@ -5008,7 +4974,7 @@ dwg_decode_variable_type (Dwg_Data *restrict dwg, Bit_Chain *dat,
   obj->dxfname = klass->dxfname;
   is_entity = dwg_class_is_entity (klass);
 
-  // clang-format off
+// clang-format off
   // global class dispatcher
   #include "classes.inc"
   // clang-format on
@@ -5088,19 +5054,15 @@ dwg_decode_add_object (Dwg_Data *restrict dwg, Bit_Chain *dat,
   int error = 0;
   int realloced = 0;
 
-  /* Keep the previous full chain  */
+  /* Save the previous full chain  */
   abs_dat = *dat;
-
-  /* Use the indicated address for the object
-   */
+  /* Until here dat is absolute, now restrict it */
   dat->byte = address;
   dat->bit = 0;
+  bit_reset_chain (dat);
 
-  // DEBUG_HERE;
-  /*
-   * Reserve memory space for objects. A realloc violates all internal
-   * pointers.
-   */
+  /* Reserve memory space for objects. A realloc violates all internal
+   * pointers. */
   realloced = dwg_add_object (dwg);
   if (realloced > 0) // i.e. not realloced, but error
     {
@@ -5108,9 +5070,9 @@ dwg_decode_add_object (Dwg_Data *restrict dwg, Bit_Chain *dat,
       return realloced; // i.e. DWG_ERR_OUTOFMEM
     }
   obj = &dwg->object[num];
-  LOG_INFO ("==========================================\n"
-            "Object number: %lu/%lX",
-            (unsigned long)num, (unsigned long)num)
+  LOG_TRACE ("==========================================\n");
+  LOG_INFO ("Object number: %lu/%lX", (unsigned long)num, (unsigned long)num);
+  obj->address = address;
 
   if (dat->byte >= dat->size)
     {
@@ -5119,6 +5081,14 @@ dwg_decode_add_object (Dwg_Data *restrict dwg, Bit_Chain *dat,
     }
   obj->size = bit_read_MS (dat);
   LOG_INFO (", Size: %d [MS]", obj->size)
+  if (obj->size > dat->size)
+    {
+      LOG_ERROR ("Invalid object size. Would overflow");
+      *dat = abs_dat;
+      return DWG_ERR_VALUEOUTOFBOUNDS;
+    }
+  dat->size = obj->size + (bit_position (dat) / 8);
+
   SINCE (R_2010)
   {
     /* This is not counted in the object size */
@@ -5127,8 +5097,7 @@ dwg_decode_add_object (Dwg_Data *restrict dwg, Bit_Chain *dat,
     obj->bitsize = obj->size * 8 - obj->handlestream_size;
     // TODO boundscheck
   }
-
-  objpos = bit_position (dat); // absolute
+  objpos = bit_rel2abs (dat, &abs_dat); // ???
   obj->address = dat->byte;
 
   /* Until here dat is absolute. now restrict it */
