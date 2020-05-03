@@ -3734,7 +3734,7 @@ dwg_encode (Dwg_Data *restrict dwg, Bit_Chain *restrict dat)
           = bit_calc_CRC32 (0, (unsigned char *)&dwg->r2004_header, 0x6c);
       LOG_HANDLE ("calc crc32: 0x%x\n", _obj->crc32);
 
-      // clang-format off
+// clang-format off
       #include "r2004_file_header.spec"
       // clang-format on
 
@@ -5346,10 +5346,10 @@ dwg_encode_entity (Dwg_Object *restrict obj, Bit_Chain *dat,
     error |= dwg_encode_eed (dat, obj);
   }
 
-  // if (error & (DWG_ERR_INVALIDTYPE|DWG_ERR_VALUEOUTOFBOUNDS))
-  //   return error;
+// if (error & (DWG_ERR_INVALIDTYPE|DWG_ERR_VALUEOUTOFBOUNDS))
+//   return error;
 
-  // clang-format off
+// clang-format off
   #include "common_entity_data.spec"
   // clang-format on
 
@@ -5368,7 +5368,7 @@ dwg_encode_common_entity_handle_data (Bit_Chain *dat, Bit_Chain *hdl_dat,
   _ent = obj->tio.entity;
   _obj = _ent;
 
-  // clang-format off
+// clang-format off
   #include "common_entity_handle_data.spec"
   // clang-format on
 
@@ -5383,7 +5383,7 @@ encode_preR13_header_variables (Bit_Chain *dat, Dwg_Data *restrict dwg)
   Bit_Chain *hdl_dat = dat;
   int error = 0;
 
-  // clang-format off
+// clang-format off
   #include "header_variables_r11.spec"
   // clang-format on
 

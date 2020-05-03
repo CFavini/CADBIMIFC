@@ -324,6 +324,8 @@ EXPORT int strcasecmp (const char *a, const char *b);
 #define DEBUG_POS_OBJ
 #define DEBUG_HERE_OBJ
 
+#define _XSTR(s) _STR (s)
+#define _STR(s) #s
 #define SAFENAME(name) (name) ? (name) : ""
 #define SAFEDXFNAME (obj && obj->dxfname ? obj->dxfname : "")
 #define ARRAY_SIZE(arr) (int)(sizeof (arr) / sizeof ((arr)[0]))

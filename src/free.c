@@ -404,7 +404,7 @@ dwg_free_common_entity_data (Dwg_Object *obj)
 
   FREE_IF (_ent->preview);
 
-  // clang-format off
+// clang-format off
   #include "common_entity_data.spec"
   if (dat->from_version >= R_2007 && _ent->color.flag & 0x40)
     FIELD_HANDLE (color.handle, 0, 430);
@@ -425,7 +425,7 @@ dwg_free_common_object_data (Dwg_Object *obj)
   BITCODE_BL vcount;
   int error = 0;
 
-  // clang-format off
+// clang-format off
   #include "common_object_handle_data.spec"
   // clang-format on
 }
@@ -1463,7 +1463,7 @@ dwg_free_preR13_header_vars (Dwg_Data *dwg)
   // fields added by dwg_add_Document:
   FIELD_TV (MENU, 0);
 
-  // clang-format off
+// clang-format off
   #include "header_variables_r11.spec"
   // clang-format on
 
@@ -1477,7 +1477,7 @@ dwg_free_header_vars (Dwg_Data *dwg)
   Dwg_Object *obj = NULL;
   Bit_Chain *dat = &pdat;
 
-  // clang-format off
+// clang-format off
   #include "header_variables.spec"
   // clang-format on
 
@@ -1491,7 +1491,7 @@ dwg_free_summaryinfo (Dwg_Data *dwg)
   Dwg_Object *obj = NULL;
   Bit_Chain *dat = &pdat;
 
-  // clang-format off
+// clang-format off
   #include "summaryinfo.spec"
   // clang-format on
   return 0;
@@ -1504,7 +1504,7 @@ dwg_free_appinfo (Dwg_Data *dwg)
   Dwg_Object *obj = NULL;
   Bit_Chain *dat = &pdat;
 
-  // clang-format off
+// clang-format off
   #include "appinfo.spec"
   // clang-format on
   return 0;
@@ -1517,7 +1517,7 @@ dwg_free_filedeplist (Dwg_Data *dwg)
   Bit_Chain *dat = &pdat;
   BITCODE_RL vcount;
 
-  // clang-format off
+// clang-format off
   #include "filedeplist.spec"
   // clang-format on
   return 0;
@@ -1529,7 +1529,7 @@ dwg_free_security (Dwg_Data *dwg)
   Dwg_Object *obj = NULL;
   Bit_Chain *dat = &pdat;
 
-  // clang-format off
+// clang-format off
   #include "security.spec"
   // clang-format on
   return 0;
@@ -1544,7 +1544,7 @@ dwg_free_acds (Dwg_Data *dwg)
   BITCODE_RL rcount3 = 0, rcount4, vcount;
   int error = 0;
 
-  // clang-format off
+// clang-format off
   #include "acds.spec"
   // clang-format on
   return 0;
