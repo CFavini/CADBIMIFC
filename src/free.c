@@ -404,7 +404,7 @@ dwg_free_common_entity_data (Dwg_Object *obj)
 
   FREE_IF (_ent->preview);
 
-  // clang-format off
+// clang-format off
   #include "common_entity_data.spec"
   if (dat->from_version >= R_2007 && _ent->color.flag & 0x40)
     FIELD_HANDLE (color.handle, 0, 430);
@@ -425,7 +425,7 @@ dwg_free_common_object_data (Dwg_Object *obj)
   BITCODE_BL vcount;
   int error = 0;
 
-  // clang-format off
+// clang-format off
   #include "common_object_handle_data.spec"
   // clang-format on
 }
@@ -1463,7 +1463,7 @@ dwg_free_preR13_header_vars (Dwg_Data *dwg)
   // fields added by dwg_add_Document:
   FIELD_TV (MENU, 0);
 
-  // clang-format off
+// clang-format off
   #include "header_variables_r11.spec"
   // clang-format on
 
@@ -1477,7 +1477,7 @@ dwg_free_header_vars (Dwg_Data *dwg)
   Dwg_Object *obj = NULL;
   Bit_Chain *dat = &pdat;
 
-  // clang-format off
+// clang-format off
   #include "header_variables.spec"
   // clang-format on
 
@@ -1491,7 +1491,7 @@ dwg_free_summaryinfo (Dwg_Data *dwg)
   Dwg_Object *obj = NULL;
   Bit_Chain *dat = &pdat;
 
-  // clang-format off
+// clang-format off
   #include "summaryinfo.spec"
   // clang-format on
   return 0;
@@ -1504,7 +1504,7 @@ dwg_free_appinfo (Dwg_Data *dwg)
   Dwg_Object *obj = NULL;
   Bit_Chain *dat = &pdat;
 
-  // clang-format off
+// clang-format off
   #include "appinfo.spec"
   // clang-format on
   return 0;
@@ -1517,7 +1517,7 @@ dwg_free_filedeplist (Dwg_Data *dwg)
   Bit_Chain *dat = &pdat;
   BITCODE_RL vcount;
 
-  // clang-format off
+// clang-format off
   #include "filedeplist.spec"
   // clang-format on
   return 0;
@@ -1529,7 +1529,7 @@ dwg_free_security (Dwg_Data *dwg)
   Dwg_Object *obj = NULL;
   Bit_Chain *dat = &pdat;
 
-  // clang-format off
+// clang-format off
   #include "security.spec"
   // clang-format on
   return 0;
@@ -1544,7 +1544,7 @@ dwg_free_acds (Dwg_Data *dwg)
   BITCODE_RL rcount3 = 0, rcount4, vcount;
   int error = 0;
 
-  // clang-format off
+// clang-format off
   #include "acds.spec"
   // clang-format on
   return 0;
@@ -1648,6 +1648,45 @@ dwg_free (Dwg_Data *dwg)
       dwg->num_objects = dwg->num_classes = dwg->num_object_refs = 0;
 #undef FREE_IF
     }
+}
+
+/* Dispatch to the impl on the type dynamically */
+int
+dwg_free_subent (Bit_Chain *dat, Bit_Chain *hdl_dat, Bit_Chain *str_dat,
+                 Dwg_Object *restrict obj)
+{
+
+#undef DWG_ENTITY
+#undef DWG_OBJECT
+#define DISPATCH_TYPE(name)                                                   \
+  case DWG_TYPE_##name:                                                       \
+    return dwg_free_##name##_impl (dat, hdl_dat, str_dat, obj);
+#define DWG_ENTITY(name) DISPATCH_TYPE (name)
+#define DWG_OBJECT(name) DISPATCH_TYPE (name)
+
+  switch (obj->fixedtype)
+    {
+// clang-format off
+    #include "objects.inc"
+    // clang-format on
+    case DWG_TYPE_FREED:
+      break; // already freed
+    case DWG_TYPE_UNUSED:
+    case DWG_TYPE_ACDSRECORD:
+    case DWG_TYPE_ACDSSCHEMA:
+    case DWG_TYPE_NPOCOLLECTION:
+    case DWG_TYPE_POINTCLOUD:
+    case DWG_TYPE_RAPIDRTRENDERENVIRONMENT:
+    case DWG_TYPE_XREFPANELOBJECT:
+    default:
+      LOG_ERROR ("Unhandled subent %s, fixedtype %d in objects.inc",
+                 dwg_type_name (obj->fixedtype), (int)obj->fixedtype);
+    }
+
+#undef DWG_ENTITY
+#undef DWG_OBJECT
+
+  return DWG_ERR_UNHANDLEDCLASS;
 }
 
 #undef IS_FREE

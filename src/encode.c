@@ -3734,7 +3734,7 @@ dwg_encode (Dwg_Data *restrict dwg, Bit_Chain *restrict dat)
           = bit_calc_CRC32 (0, (unsigned char *)&dwg->r2004_header, 0x6c);
       LOG_HANDLE ("calc crc32: 0x%x\n", _obj->crc32);
 
-      // clang-format off
+// clang-format off
       #include "r2004_file_header.spec"
       // clang-format on
 
@@ -5346,10 +5346,10 @@ dwg_encode_entity (Dwg_Object *restrict obj, Bit_Chain *dat,
     error |= dwg_encode_eed (dat, obj);
   }
 
-  // if (error & (DWG_ERR_INVALIDTYPE|DWG_ERR_VALUEOUTOFBOUNDS))
-  //   return error;
+// if (error & (DWG_ERR_INVALIDTYPE|DWG_ERR_VALUEOUTOFBOUNDS))
+//   return error;
 
-  // clang-format off
+// clang-format off
   #include "common_entity_data.spec"
   // clang-format on
 
@@ -5368,7 +5368,7 @@ dwg_encode_common_entity_handle_data (Bit_Chain *dat, Bit_Chain *hdl_dat,
   _ent = obj->tio.entity;
   _obj = _ent;
 
-  // clang-format off
+// clang-format off
   #include "common_entity_handle_data.spec"
   // clang-format on
 
@@ -5383,7 +5383,7 @@ encode_preR13_header_variables (Bit_Chain *dat, Dwg_Data *restrict dwg)
   Bit_Chain *hdl_dat = dat;
   int error = 0;
 
-  // clang-format off
+// clang-format off
   #include "header_variables_r11.spec"
   // clang-format on
 
@@ -6141,6 +6141,45 @@ dwg_set_dataflags (Dwg_Object *obj)
       if (_obj->vert_alignment != 0)
         _obj->dataflags |= 0x80;
     }
+}
+
+/* Dispatch to the impl on the type dynamically */
+int
+dwg_encode_subent (Bit_Chain *dat, Bit_Chain *hdl_dat, Bit_Chain *str_dat,
+                   Dwg_Object *restrict obj)
+{
+
+#undef DWG_ENTITY
+#undef DWG_OBJECT
+#define DISPATCH_TYPE(name)                                                   \
+  case DWG_TYPE_##name:                                                       \
+    return dwg_encode_##name##_impl (dat, hdl_dat, str_dat, obj);
+#define DWG_ENTITY(name) DISPATCH_TYPE (name)
+#define DWG_OBJECT(name) DISPATCH_TYPE (name)
+
+  switch (obj->fixedtype)
+    {
+// clang-format off
+    #include "objects.inc"
+    // clang-format on
+    case DWG_TYPE_FREED:
+      break;
+    case DWG_TYPE_UNUSED:
+    case DWG_TYPE_ACDSRECORD:
+    case DWG_TYPE_ACDSSCHEMA:
+    case DWG_TYPE_NPOCOLLECTION:
+    case DWG_TYPE_POINTCLOUD:
+    case DWG_TYPE_RAPIDRTRENDERENVIRONMENT:
+    case DWG_TYPE_XREFPANELOBJECT:
+    default:
+      LOG_ERROR ("Unhandled subent %s, fixedtype %d in objects.inc",
+                 dwg_type_name (obj->fixedtype), (int)obj->fixedtype);
+    }
+
+#undef DWG_ENTITY
+#undef DWG_OBJECT
+
+  return DWG_ERR_UNHANDLEDCLASS;
 }
 
 #undef IS_ENCODER

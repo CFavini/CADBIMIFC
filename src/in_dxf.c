@@ -8681,7 +8681,7 @@ new_object (char *restrict name, char *restrict dxfname,
       */
       else
         {
-          // clang-format off
+// clang-format off
           // ADD_ENTITY by name
           // check all objects
           #undef DWG_ENTITY
@@ -8710,7 +8710,7 @@ new_object (char *restrict name, char *restrict dxfname,
       obj->tio.object->is_xdic_missing = 1;
       if (!ctrl_id) // no table
         {
-          // clang-format off
+// clang-format off
           // ADD_OBJECT by name
           // check all objects
           #undef DWG_OBJECT
@@ -12925,6 +12925,44 @@ dwg_read_dxfb (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
   return dwg_read_dxf (dat, dwg);
 }
 
-#endif // DISABLE_DXF
+/* Generic subclass dispatcher. Not yet used */
+#  if 0
+/* Dispatch to the impl on the type dynamically */
+int dwg_indxf_subent (Bit_Chain *dat, Bit_Chain *hdl_dat, Bit_Chain *str_dat,
+                      Dwg_Object *restrict obj)
+{
 
+#    undef DWG_ENTITY
+#    undef DWG_OBJECT
+#    define DISPATCH_TYPE(name)                                               \
+    case DWG_TYPE_##name:                                                     \
+      return dwg_indxf_##name##_impl (dat, hdl_dat, str_dat, obj);
+#    define DWG_ENTITY(name) DISPATCH_TYPE (name)
+#    define DWG_OBJECT(name) DISPATCH_TYPE (name)
+
+  switch (obj->fixedtype)
+    {
+    // clang-format off
+    #include "objects.inc"
+    // clang-format on
+    case DWG_TYPE_FREED: break;
+    case DWG_TYPE_UNUSED:
+    case DWG_TYPE_ACDSRECORD:
+    case DWG_TYPE_ACDSSCHEMA:
+    case DWG_TYPE_NPOCOLLECTION:
+    case DWG_TYPE_POINTCLOUD:
+    case DWG_TYPE_RAPIDRTRENDERENVIRONMENT:
+    case DWG_TYPE_XREFPANELOBJECT:
+    default: LOG_ERROR ("Unhandled subent %s, fixedtype %d in objects.inc",
+                        dwg_type_name (obj->fixedtype), (int)obj->fixedtype);
+    }
+
+#    undef DWG_ENTITY
+#    undef DWG_OBJECT
+
+  return DWG_ERR_UNHANDLEDCLASS;
+}
+#  endif
+
+#endif // DISABLE_DXF
 #undef IS_INDXF

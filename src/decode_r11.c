@@ -119,7 +119,7 @@ decode_preR13_header_variables (Bit_Chain *dat, Dwg_Data *restrict dwg)
   Bit_Chain *hdl_dat = dat;
   int error = 0;
 
-  // clang-format off
+// clang-format off
   #include "header_variables_r11.spec"
   // clang-format on
 
@@ -616,7 +616,7 @@ decode_preR13 (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
     Dwg_Header *_obj = (Dwg_Header *)&dwg->header;
     Bit_Chain *hdl_dat = dat;
     dat->byte = 0x06;
-    // clang-format off
+// clang-format off
     #include "header.spec"
     // clang-format on
   }

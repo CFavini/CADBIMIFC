@@ -1870,7 +1870,7 @@ read_2007_section_summary (Bit_Chain *restrict dat, Dwg_Data *restrict dwg,
   str_dat = dat = &sec_dat; // restrict in size
   bit_chain_set_version (&old_dat, dat);
 
-  // clang-format off
+// clang-format off
   #include "summaryinfo.spec"
   // clang-format on
 
@@ -1910,7 +1910,7 @@ read_2007_section_appinfo (Bit_Chain *restrict dat, Dwg_Data *restrict dwg,
   str_dat = dat = &sec_dat; // restrict in size
   bit_chain_set_version (&old_dat, dat);
 
-  // clang-format off
+// clang-format off
   #include "appinfo.spec"
   // clang-format on
 
@@ -1951,7 +1951,7 @@ read_2007_section_auxheader (Bit_Chain *restrict dat, Dwg_Data *restrict dwg,
   dat = &sec_dat; // restrict in size
   bit_chain_set_version (&old_dat, dat);
 
-  // clang-format off
+// clang-format off
   #include "auxheader.spec"
   // clang-format on
 
@@ -2035,7 +2035,7 @@ read_2007_section_revhistory (Bit_Chain *restrict dat, Dwg_Data *restrict dwg,
   dat = &sec_dat; // restrict in size
   bit_chain_set_version (&old_dat, dat);
 
-  // clang-format off
+// clang-format off
   #include "revhistory.spec"
   // clang-format on
 
@@ -2077,7 +2077,7 @@ read_2007_section_objfreespace (Bit_Chain *restrict dat,
   dat = &sec_dat; // restrict in size
   bit_chain_set_version (&old_dat, dat);
 
-  // clang-format off
+// clang-format off
   #include "objfreespace.spec"
   // clang-format on
 
@@ -2119,7 +2119,7 @@ read_2007_section_template (Bit_Chain *restrict dat, Dwg_Data *restrict dwg,
   dat = &sec_dat; // restrict in size
   bit_chain_set_version (&old_dat, dat);
 
-  // clang-format off
+// clang-format off
   #include "template.spec"
   // clang-format on
 
@@ -2165,7 +2165,7 @@ read_2007_section_filedeplist (Bit_Chain *restrict dat, Dwg_Data *restrict dwg,
   str_dat = dat = &sec_dat; // restrict in size
   bit_chain_set_version (&old_dat, dat);
 
-  // clang-format off
+// clang-format off
   #include "filedeplist.spec"
   // clang-format on
 
@@ -2206,7 +2206,7 @@ read_2007_section_security (Bit_Chain *restrict dat, Dwg_Data *restrict dwg,
   str_dat = dat = &sec_dat; // restrict in size
   bit_chain_set_version (&old_dat, dat);
 
-  // clang-format off
+// clang-format off
   #include "security.spec"
   // clang-format on
 
@@ -2270,7 +2270,7 @@ acds_private (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
   BITCODE_BL rcount1 = 0, rcount2 = 0;
   BITCODE_BL rcount3 = 0, rcount4, vcount;
 
-  // clang-format off
+// clang-format off
   #include "acds.spec"
   // clang-format on
 
