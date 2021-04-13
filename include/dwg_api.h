@@ -1287,7 +1287,7 @@ DWG_GETALL_ENTITY_DECL (XYPARAMETERENTITY);
 
 /**
  * \fn Dwg_Object_OBJECT dwg_getall_OBJECT(Dwg_Data *dwg)
- * Extracts all objects of this type from a dwg, and returns a malloced
+ * Extracts all objects of this type from a dwg, and returns a MALLOCed
  * NULL-terminated array.
  */
 

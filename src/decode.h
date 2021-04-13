@@ -87,7 +87,7 @@ void bfr_read_32 (void *restrict dst, BITCODE_RC *restrict *restrict src,
 void bfr_read_64 (void *restrict dst, BITCODE_RC *restrict *restrict src,
                   size_t size);
 
-/* reused with free */
+/* reused with FREE */
 void dwg_free_xdata_resbuf (Dwg_Resbuf *restrict rbuf);
 
 /* reused with encode */

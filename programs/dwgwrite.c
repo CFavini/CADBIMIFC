@@ -72,10 +72,9 @@ help (void)
   printf ("  -v[0-9], --verbose [0-9]  verbosity\n");
   printf ("  --as rNNNN                save as version\n");
   printf ("           Valid versions:\n");
-  printf ("             r1.1, r1.2, r1.3, r2.0, r2.10, r2.21, r2.22, r2.4,"
-          "             r2.5, r2.6, r9, r10, r11, r13, r14, r2000 (default)\n");
+  printf ("             r13, r14, r2000 (default)\n");
   printf ("           Planned versions:\n");
-  printf ("             r2004-r2021\n");
+  printf ("             r1.4-r11, r2004-r2018\n");
 #  ifndef DISABLE_JSON
   printf ("  -I fmt,  --format fmt     DXF, DXFB, JSON\n");
 #  else
@@ -91,10 +90,9 @@ help (void)
   printf ("  -v[0-9]     verbosity\n");
   printf ("  -a rNNNN    save as version\n");
   printf ("              Valid versions:\n");
-  printf ("                r1.1, r1.2, r1.3, r2.0, r2.10, r2.21, r2.22, r2.4,"
-          "                r2.5, r2.6, r9, r10, r11, r13, r14, r2000 (default)\n");
+  printf ("                r13, r14, r2000 (default)\n");
   printf ("              Planned versions:\n");
-  printf ("                r2004-r2021\n");
+  printf ("                r1.2-r11, r2004-r2018\n");
 #  ifndef DISABLE_JSON
   printf ("  -I fmt      fmt: DXF, DXFB, JSON\n");
 #  else
@@ -123,6 +121,7 @@ main (int argc, char *argv[])
   Bit_Chain out_dat = { NULL, 0, 0, 0, 0 };
   FILE *fp;
 
+  GC_INIT ();
   __AFL_INIT ();
   dat.chain = NULL;
   dat.version = R_2000;
@@ -157,7 +156,7 @@ main (int argc, char *argv[])
           out_dat.version = R_2000;
           if (dwg_encode (&dwg, &out_dat) >= DWG_ERR_CRITICAL)
             exit (0);
-          free (out_dat.chain);
+          FREE (out_dat.chain);
         }
       else
         exit (0);
@@ -396,15 +395,15 @@ main (int argc, char *argv[])
         fprintf (stderr, "Missing input format\n");
       if (infile)
         fclose (dat.fh);
-      free (dat.chain);
+      FREE (dat.chain);
       exit (1);
     }
 
-  free (dat.chain);
+  FREE (dat.chain);
   if (infile && dat.fh)
     fclose (dat.fh);
   if (error >= DWG_ERR_CRITICAL)
-    goto free;
+    goto FREE;
 
   if (dwg.header.from_version == R_INVALID)
     fprintf (stderr, "Unknown DWG header.from_version");
@@ -472,7 +471,7 @@ main (int argc, char *argv[])
       }
   }
 
-free:
+FREE:
 #if defined __SANITIZE_ADDRESS__ || __has_feature(address_sanitizer)
   {
     char *asanenv = getenv ("ASAN_OPTIONS");
@@ -512,6 +511,8 @@ free:
     }
 
   if (free_outfile)
-    free (outfile);
+    {
+      FREE (outfile);
+    }
   return error >= DWG_ERR_CRITICAL ? 1 : 0;
 }

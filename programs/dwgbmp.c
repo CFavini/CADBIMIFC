@@ -72,10 +72,13 @@ help (void)
   return 0;
 }
 
+#ifdef HAVE_LIBGC
+#  define bmp_free_dwg(x)
+#else
 static void
 bmp_free_dwg (Dwg_Data *dwg)
 {
-#if defined __SANITIZE_ADDRESS__ || __has_feature(address_sanitizer)
+#  if defined __SANITIZE_ADDRESS__ || __has_feature(address_sanitizer)
   {
     char *asanenv = getenv ("ASAN_OPTIONS");
     if (!asanenv)
@@ -84,15 +87,16 @@ bmp_free_dwg (Dwg_Data *dwg)
     else if (strstr (asanenv, "detect_leaks=0") == NULL) /* not found */
       force_free = 1;
   }
-#endif
+#  endif
   // really huge DWG's need endlessly here.
   if ((dwg->header.version && dwg->num_objects < 1000) || force_free
-#ifdef HAVE_VALGRIND_VALGRIND_H
+#  ifdef HAVE_VALGRIND_VALGRIND_H
       || (RUNNING_ON_VALGRIND)
-#endif
+#  endif
   )
     dwg_free (dwg);
 }
+#endif
 
 #pragma pack(1)
 
@@ -211,6 +215,7 @@ main (int argc, char *argv[])
           { NULL, 0, NULL, 0 } };
 #endif
 
+  GC_INIT ();
   if (argc < 2)
     return usage ();
 
@@ -301,6 +306,6 @@ main (int argc, char *argv[])
     bmpfile = suffix (dwgfile, "bmp");
   error = get_bmp (dwgfile, bmpfile);
   if (i != argc - 2)
-    free (bmpfile);
+    FREE (bmpfile);
   return error;
 }

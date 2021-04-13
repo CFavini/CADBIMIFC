@@ -27,6 +27,7 @@
 #include "dwg.h"
 #include "decode.h"
 #include "print.h"
+#include "free.h"
 
 #define DWG_LOGLEVEL DWG_LOGLEVEL_TRACE
 #include "logging.h"
@@ -414,7 +415,7 @@ dwg_print_variable_type (Dwg_Data *restrict dwg, Bit_Chain *restrict dat,
   // almost always false
   is_entity = dwg_class_is_entity (klass);
 
-  // clang-format off
+// clang-format off
   #include "classes.inc"
   // clang-format on
 

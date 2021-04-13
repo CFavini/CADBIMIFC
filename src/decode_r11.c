@@ -314,10 +314,10 @@ decode_preR13_section (Dwg_Section_Type_r11 id, Bit_Chain *restrict dat,
         if (_ctrl->num_entries != tbl->number)                                \
           {                                                                   \
             if (_ctrl->entries)                                               \
-              _ctrl->entries = realloc (_ctrl->entries,                       \
+              _ctrl->entries = REALLOC (_ctrl->entries,                       \
                                         tbl->number * sizeof (BITCODE_H));    \
             else                                                              \
-              _ctrl->entries = calloc (tbl->number, sizeof (BITCODE_H));      \
+              _ctrl->entries = CALLOC (tbl->number, sizeof (BITCODE_H));      \
             _ctrl->num_entries = tbl->number;                                 \
             LOG_TRACE (#token "_CONTROL.num_entries = %u\n", tbl->number);    \
           }                                                                   \
@@ -645,8 +645,6 @@ decode_preR13 (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
 
   // setup all the new control objects
   error |= dwg_add_Document (dwg, 0);
-  if (error >= DWG_ERR_CRITICAL)
-    return error;
 
   SINCE (R_2_0b)
   {
@@ -794,7 +792,7 @@ decode_preR13 (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
       BITCODE_TF unknown = bit_read_TF (dat, len);
       LOG_TRACE ("unknown (%d):", len);
       LOG_TRACE_TF (unknown, len);
-      free (unknown);
+      FREE (unknown);
     }
 
   if (dwg->dirty_refs)

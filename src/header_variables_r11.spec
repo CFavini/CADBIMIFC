@@ -112,7 +112,7 @@
   FIELD_RS (ATTMODE, 70);
   DECODER {
     if (FIELD_VALUE (MENU)) // already created by add_Document
-      free (FIELD_VALUE (MENU));
+      FREE (FIELD_VALUE (MENU));
   }
   // cppcheck-suppress doubleFree
   FIELD_TFv (MENU, 15, 1); // optionally extended by MENUEXT below
@@ -266,7 +266,7 @@
   FIELD_RS (HANDLING, 70); // use new HEX handles (should be RC)
 #ifdef IS_DECODER
   {
-    _obj->HANDSEED = (BITCODE_H)calloc(1, sizeof(Dwg_Object_Ref));
+    _obj->HANDSEED = (BITCODE_H)CALLOC (1, sizeof (Dwg_Object_Ref));
     _obj->HANDSEED->handleref.code = 0;
     _obj->HANDSEED->handleref.size = 8;
     _obj->HANDSEED->handleref.value = htobe64 (bit_read_RLL (dat));

@@ -1,7 +1,7 @@
 /*****************************************************************************/
 /*  LibreDWG - free implementation of the DWG file format                    */
 /*                                                                           */
-/*  Copyright (C) 2009, 2023 Free Software Foundation, Inc.                  */
+/*  Copyright (C) 2009, 2021, 2023 Free Software Foundation, Inc.            */
 /*  Copyright (C) 2010 Thien-Thi Nguyen                                      */
 /*                                                                           */
 /*  This library is free software, licensed under the terms of the GNU       */
@@ -38,6 +38,7 @@
 #include "dwg.h"
 #include "dwg_api.h"
 #include "bits.h"
+#include "common.h"
 
 #include "../programs/suffix.inc"
 static int help (void);
@@ -206,6 +207,7 @@ main (int argc, char *argv[])
   int i = 1;
   unsigned int opts = 0;
 
+  GC_INIT ();
   if (argc < 2)
     return usage ();
 #if defined(USE_TRACING) && defined(HAVE_SETENV)

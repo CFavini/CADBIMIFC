@@ -137,7 +137,7 @@
         {                                                                     \
           char *_u8 = bit_convert_TU (wstr);                                  \
           HANDLER (OUTPUT, "%s", _u8);                                        \
-          free (_u8);                                                         \
+          FREE (_u8);                                                         \
         }                                                                     \
     }
 #endif
@@ -152,7 +152,7 @@
       {                                                                       \
         char *_u8 = bit_convert_TU (wstr);                                    \
         HANDLER (OUTPUT, "%s", _u8);                                          \
-        free (_u8);                                                           \
+        FREE (_u8);                                                           \
       }                                                                       \
   }
 
