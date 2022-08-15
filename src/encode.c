@@ -849,13 +849,16 @@ obj_flush_hdlstream (Dwg_Object *restrict obj, Bit_Chain *restrict dat,
 {
   unsigned long datpos = bit_position (dat);
   unsigned long hdlpos = bit_position (hdl_dat);
+  unsigned long hdlsize = (hdl_dat->size * 8) - hdlpos;
   unsigned long objpos = obj->address * 8;
 #if 0
   unsigned char* oldchain = dat->chain;
 #endif
-  LOG_TRACE ("Flush handle stream of size %lu (@%lu.%u) to @%lu.%lu\n", hdlpos,
+  LOG_TRACE ("Flush handle stream of %lu bits (@%lu.%u) to @%lu.%lu\n", hdlsize,
              hdl_dat->byte, hdl_dat->bit, (datpos - objpos) / 8,
              (datpos - objpos) % 8);
+  if (hdlpos > 10000U)
+    LOG_ERROR("Possible hdl_data overflow")
   // This might change dat->chain
   bit_copy_chain (dat, hdl_dat);
 }
