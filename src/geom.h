@@ -18,20 +18,29 @@
 #ifndef _GEOM_H_
 #define _GEOM_H_
 
-#include "../src/config.h"
+#include "config.h"
 #include <dwg.h>
 
 #ifndef M_PI
 #  define M_PI 3.14159265358979323846264338327950288
 #endif
 
-void normalize (BITCODE_3DPOINT *out, BITCODE_3DPOINT pt);
-void cross (BITCODE_3DPOINT *out, BITCODE_3DPOINT pt1, BITCODE_3DPOINT pt2);
-// transform a 2D point via its OCS (extrusion) to 2D
-void transform_OCS_2d (BITCODE_2DPOINT *out, BITCODE_2DPOINT pt,
-                       BITCODE_BE ext);
+// void normalize (BITCODE_3DPOINT *out, BITCODE_3DPOINT pt);
+// void cross (BITCODE_3DPOINT *out, BITCODE_3DPOINT pt1, BITCODE_3DPOINT pt2);
+//  transform a 2D point via its OCS (extrusion) to 2D
+EXPORT void transform_OCS_2d (BITCODE_2DPOINT *out, BITCODE_2DPOINT pt,
+                              BITCODE_BE ext);
 // transform a 3D point via its OCS (extrusion) to 2D
-void transform_OCS (BITCODE_3DPOINT *out, BITCODE_3DPOINT pt, BITCODE_BE ext);
+EXPORT void transform_OCS (BITCODE_3DPOINT *out, BITCODE_3DPOINT pt,
+                           BITCODE_BE ext);
+
 // TODO: bulge -> arc for svg and ps
+void angle_vector_2d (BITCODE_2DPOINT *out, BITCODE_2DPOINT ctr,
+                      BITCODE_BD angle, BITCODE_BD len);
+// returns malloc'ed endpoints
+EXPORT void arc_split (BITCODE_2BD *pts, const int num_pts,
+                       const BITCODE_2BD center_2d,
+                       const BITCODE_BD start_angle,
+                       const BITCODE_BD end_angle, const BITCODE_BD radius);
 
 #endif /* _GEOM_H_ */

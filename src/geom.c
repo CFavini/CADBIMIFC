@@ -1,7 +1,7 @@
 /*****************************************************************************/
 /*  LibreDWG - free implementation of the DWG file format                    */
 /*                                                                           */
-/*  Copyright (C) 2019 Free Software Foundation, Inc.                        */
+/*  Copyright (C) 2019,2022-2023 Free Software Foundation, Inc.              */
 /*                                                                           */
 /*  This library is free software, licensed under the terms of the GNU       */
 /*  General Public License as published by the Free Software Foundation,     */
@@ -13,16 +13,19 @@
 /*
  * geom.c: geometric projections from OCS
  * Note: There are certainly bugs lurking here. Not thoroughly tested yet.
+ * For the properly exported variants see dwg_api instead, with the
+ * dwg_geom_ prefix.
  * written by Reini Urban
  */
 
-#include "../src/config.h"
+#include "config.h"
 #include <string.h>
 #include <math.h>
 #include <dwg.h>
+#include "common.h"
 #include "geom.h"
 
-void
+static void
 normalize (BITCODE_3DPOINT *out, BITCODE_3DPOINT pt)
 {
   double l = sqrt ((pt.x * pt.x) + (pt.y * pt.y) + (pt.z * pt.z));
@@ -35,7 +38,7 @@ normalize (BITCODE_3DPOINT *out, BITCODE_3DPOINT pt)
     }
 }
 
-void
+static void
 cross (BITCODE_3DPOINT *out, BITCODE_3DPOINT pt1, BITCODE_3DPOINT pt2)
 {
   out->x = pt1.y * pt2.z - pt1.z * pt2.y;
@@ -127,3 +130,31 @@ transform_OCS (BITCODE_3DPOINT *out, BITCODE_3DPOINT pt, BITCODE_BE ext)
 
 // TODO: bulge -> arc for svg and ps.
 // Segmentation of arc,curves into plines for geojson.
+
+// endpoint of the angular vector from ctr, to angle (radian), for radius len
+void
+angle_vector_2d (BITCODE_2BD *out, BITCODE_2BD ctr, BITCODE_BD angle, BITCODE_BD len)
+{
+  out->x = ctr.x + len * cos(angle);
+  out->y = ctr.y + len * sin(angle);
+}
+
+// fills pts
+void
+arc_split (BITCODE_2BD *pts, const int num_pts,
+           const BITCODE_2BD ctr, const BITCODE_BD start_angle,
+           const BITCODE_BD end_angle, const BITCODE_BD len)
+{
+  double ang, angd = rad2deg(end_angle - start_angle) / num_pts;
+  while (angd < 0.0)
+    angd += M_PI;
+  // shoot vectors from ctr to ang
+  ang = start_angle;
+  for (int i = 0; i < num_pts; i++, ang += angd)
+    {
+      BITCODE_2BD pt;
+      angle_vector_2d (&pt, ctr, ang, len);
+      pts[i].x = pt.x;
+      pts[i].y = pt.y;
+    }
+}

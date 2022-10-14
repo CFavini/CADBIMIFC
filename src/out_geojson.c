@@ -43,6 +43,7 @@
 #include "dwg.h"
 #include "decode.h"
 #include "out_json.h"
+#include "geom.h"
 
 /* the current version per spec block */
 static unsigned int cur_ver = 0;
@@ -577,6 +578,8 @@ dwg_geojson_LWPOLYLINE (Bit_Chain *restrict dat, Dwg_Object *restrict obj,
     return 1;
 
   FEATURE (AcDbEntity : AcDbLwPolyline, obj);
+  // TODO bulges, splines, ...
+
   // if closed and num_points > 3 use a Polygon
   if (_obj->flag & 512 && _obj->num_points > 3)
     {
@@ -709,6 +712,8 @@ dwg_geojson_object (Bit_Chain *restrict dat, Dwg_Object *restrict obj,
         pts = dwg_object_polyline_2d_get_points (obj, &error);
         if (error || !pts)
           return 0;
+        // TODO bulges needs explosion into lines. divided by polyline curve smoothness (default 8)
+
         // if closed and num_points > 3 use a Polygon
         FEATURE (AcDbEntity : AcDbPolyline, obj);
         if (_obj->flag & 512 && numpts > 3)
@@ -781,14 +786,75 @@ dwg_geojson_object (Bit_Chain *restrict dat, Dwg_Object *restrict obj,
         return 1;
       }
     case DWG_TYPE_ARC:
-      // needs explosion of arc into lines
       // dwg_geojson_ARC(dat, obj);
-      LOG_TRACE ("ARC not yet supported")
+      if (1)
+        {
+          Dwg_Entity_ARC *_obj = obj->tio.entity->tio.ARC;
+          const int viewres = 1000;
+          // viewres is for 2PI. we need anglediff(deg)/2PI
+          BITCODE_2BD pt, ctr;
+          BITCODE_2BD *pts;
+          int num_pts = (int)trunc(viewres / rad2deg(_obj->end_angle - _obj->start_angle));
+          pts = (BITCODE_2BD*)malloc(num_pts * sizeof(BITCODE_2BD));
+          ctr.x = _obj->center.x;
+          ctr.y = _obj->center.y;
+          // needs explosion of arc into lines. divided by VIEWRES (default 1000)
+          arc_split (pts, num_pts, ctr, _obj->start_angle,
+                     _obj->end_angle, _obj->radius);
+          FEATURE (AcDbEntity : AcDbArc, obj);
+          GEOMETRY (Polygon)
+          KEY (coordinates);
+          ARRAY;
+          ARRAY;
+          for (int j = 0; j < num_pts - 1; j++)
+            {
+              VALUE_2DPOINT (pts[j].x, pt.y)
+            }
+          LASTVALUE_2DPOINT (pts[num_pts-1].x, pts[num_pts-1].y);
+          LASTENDARRAY;
+          LASTENDARRAY;
+          ENDGEOMETRY;
+          ENDFEATURE;
+          free (pts);
+        }
+      else
+        LOG_TRACE ("ARC not yet supported")
       break;
     case DWG_TYPE_CIRCLE:
-      // needs explosion of arc into lines
       // dwg_geojson_CIRCLE(dat, obj);
-      LOG_TRACE ("CIRCLE not yet supported")
+      if (1)
+        {
+          Dwg_Entity_CIRCLE *_obj = obj->tio.entity->tio.CIRCLE;
+          const int viewres = 1000; //dwg->header_vars.VIEWRES;
+          int num_pts;
+          // viewres is for 2PI. we need anglediff(deg)/2PI
+          double res, ang, angd = (M_PI * 2.0) / viewres;
+          BITCODE_2BD ctr, pt;
+          BITCODE_2BD *pts;
+          res = viewres / 360.0;
+          num_pts = (int)trunc(res);
+          ctr.x = _obj->center.x;
+          ctr.y = _obj->center.y;
+          pts = (BITCODE_2BD*)malloc(num_pts * sizeof(BITCODE_2BD));
+          arc_split (pts, num_pts, ctr, 0, M_PI * 2.0, _obj->radius);
+          FEATURE (AcDbEntity : AcDbArc, obj);
+          GEOMETRY (Polygon)
+          KEY (coordinates);
+          ARRAY;
+          ARRAY;
+          for (int j = 0; j < num_pts - 1; j++)
+            {
+              VALUE_2DPOINT (pts[j].x, pt.y)
+            }
+          LASTVALUE_2DPOINT (pts[num_pts-1].x, pts[num_pts-1].y);
+          LASTENDARRAY;
+          LASTENDARRAY;
+          ENDGEOMETRY;
+          ENDFEATURE;
+          free (pts);
+        }
+      else
+        LOG_TRACE ("CIRCLE not yet supported")
       break;
     case DWG_TYPE_LINE:
       {
