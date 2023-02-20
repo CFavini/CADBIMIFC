@@ -2953,6 +2953,7 @@ dwg_ref_objname (const Dwg_Data *restrict dwg, Dwg_Object_Ref *restrict ref)
 
 // supports tables entries and everything with a name.
 // r2007 names are returned as malloc'ed utf-8
+ATTRIBUTE_MALLOC
 const char *
 dwg_ref_tblname (const Dwg_Data *restrict dwg, Dwg_Object_Ref *restrict ref,
                  int *alloced)
@@ -3031,12 +3032,12 @@ dwg_set_next_objhandle (Dwg_Object *obj)
     }
   hash_set (dwg->object_map, obj->handle.value, (uint32_t)obj->index);
   dwg->next_hdl = 0;
-  return;
 }
 
 // <path-to>/dxf.ext => copy of "dxf", "ext"
 // returns a malloc'ed copy of basename without extension, and
 // sets ext to the char behind the last "." of basename
+ATTRIBUTE_MALLOC
 char *
 split_filepath (const char *filepath, char **extp)
 {
